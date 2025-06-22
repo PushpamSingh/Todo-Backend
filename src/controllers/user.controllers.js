@@ -12,12 +12,15 @@ const generateAccessandRefreshToken=async(userID)=>{
         if(!user){
             throw new ApiError(404,"user not found")
         }
-        const accessToken=await user.generateAccessToken();
-        const refreshToken=await user.generateRefreshToken();
+        // console.log("user in generate token: ",user);
+        
+        const accessToken= user.generateAccessToken();
+        const refreshToken= user.generateRefreshToken();
 
         user.refreshToken=refreshToken;
-        user.save({validateBeforeSave:false});
-
+        await user.save({validateBeforeSave:false});
+        //    console.log("accesstoken: ",accessToken);
+        // console.log("refreshtoken: ",refreshToken);
         return {accessToken,refreshToken};
     } catch (error) {
         throw new ApiError(500,"Internal server from generateAccessAndRefreshToken")
@@ -44,10 +47,11 @@ const registerUser=asyncHandler(async(req,res)=>{
         if(existUser){
             throw new ApiError(409,"User alresdy exists go to login page")
         }
-        const avatarLocalPath=req.files?.avatar[0]?.path;
+        // const avatarLocalPath=req.files?.avatar[0]?.path;
+        const avatarLocalPath=req.file?.path;
 
         if(!avatarLocalPath){
-            throw new ApiError(400,"avatar is required")
+            throw new ApiError(400,`avatar is required:- ${avatarLocalPath}`)
         }
 
         const avatarUploaded = await uploadCloudinary(avatarLocalPath);
@@ -56,7 +60,7 @@ const registerUser=asyncHandler(async(req,res)=>{
         }
 
         const user = await User.create({
-            username:username.toLowerCase(),
+            username:username.toString().toLowerCase().trim(),
             password,
             email,
             phone,
@@ -88,35 +92,37 @@ const login=asyncHandler(async(req,res)=>{
         //!create a dataBase call and compare the password
         //!generate accessToken and refreshToke
         //!send the response
-        const {username,email,password}=req.body;
-        if([username,email,password].some((data)=>data?.trim==="")){
+        const {email,password}=req.body;
+        if([email,password].some((data)=>data?.trim==="")){
             throw new ApiError(400,"The provided data is missing or not valid")
         }
-
-        const user=await User.findOne({
-            $or:[{username},{email}]
-        })
+        // console.log("Password: ",password);
+        
+        const user=await User.findOne({email})
         if(!user){
             throw new ApiError(404,"user not found goto sign up page")
         }
+        // console.log("user: ",user);
+        
         const isPasswordMatch=await user.comparePassword(password);
 
         if(!isPasswordMatch){
             throw new ApiError(402,"Password is incorrect")
         }
 
-        const {accessToken,refreshToken}=generateAccessandRefreshToken(user._id);
+        const {accessToken,refreshToken}=await generateAccessandRefreshToken(user._id);
 
+      
+        
         const loggedInUser=await User.findById(user._id).select("-password -refreshToken")
         if(!loggedInUser){
             throw new ApiError(500,"Internal Server Error")
         }
         const options={
             httpOnly:true,
-            secure:true
+            secure:false
         }
-        return res
-        .status(201)
+        return res.status(200)
         .cookie("accessToken",accessToken,options)
         .cookie("refreshToken",refreshToken,options)
         .json(
@@ -212,23 +218,11 @@ const changePassword=asyncHandler(async(req,res)=>{
             throw new ApiError(400,"Old Password is not matched")
         }
 
-        const updatePassword=await User.findByIdAndUpdate(
-            userID,
-            {
-                $set:{
-                    password:newPassword
-                }
-            },
-            {
-                new:true
-            }
-        )
-        if(!updatePassword){
-            throw new ApiError(500,"Failed to update password")
-        }
+        user.password=newPassword;
+        await user.save({validateBeforeSave:false})
 
         return res.status(200).json(
-            new ApiResponse(200,updatePassword,"Password changed successfuly")
+            new ApiResponse(200,user,"Password changed successfuly")
         )
     } catch (error) {
           res.status(500).json(
@@ -254,13 +248,15 @@ const updateUserDetailes=asyncHandler(async(req,res)=>{
             throw new ApiError(400,"username or email is required")
         }
 
+        // console.log("Username, email: ",username,email);
+        
         if(!isValidObjectId(userID)){
             throw new ApiError(401,"Invalid userID or unAuthorized user")
         }
 
-        const avatarLocalPath=req.file?.avatar[0]?.path;
+        const avatarLocalPath=req.file?.path;
         if(!avatarLocalPath){
-            throw new ApiError(404,"avatar is required");
+            throw new ApiError(404,"avatar is required here");
         }
         const user=await User.findById(userID);
          if(!user){
@@ -279,7 +275,7 @@ const updateUserDetailes=asyncHandler(async(req,res)=>{
             {
                 username,
                 email,
-                avatar:avatar?.url || ""
+                avatar:uploadoncloudinary?.url || ""
             },
             {
                 new:true
@@ -289,6 +285,11 @@ const updateUserDetailes=asyncHandler(async(req,res)=>{
          if(!upadtedUser){
             throw new ApiError(503,"DataBase Error !! failed to update user Detailes")
          }
+
+         return res.status(200)
+         .json(
+            new ApiResponse(200,upadtedUser,"user detailes updated successfuly")
+         )
 
     } catch (error) {
          res.status(500).json(

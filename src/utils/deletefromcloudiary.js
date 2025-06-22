@@ -1,7 +1,7 @@
 import { v2 as cloudinary } from "cloudinary";
 import dotenv from "dotenv";
-import { asyncHandler } from "./AsyncHandler.js";
 import { ApiError } from "./ApiError.js";
+import fs from 'fs'
 dotenv.config();
 
 cloudinary.config({
@@ -32,10 +32,13 @@ export const deleteCloudinary=async(filepath)=>{
         if(response?.result!=='ok' && response?.result!=="not found"){
             throw new ApiError(500,"failed to delete file")
         }
-           console.log("Response from delete cloudinary: ",response);
+        fs.unlinkSync(filepath)
+        
+        //    console.log("Response from delete cloudinary: ",response);
            return response;
     } catch (error) {
         console.log("Cloudinary delete :: Error :: ",error)    
+        fs.unlinkSync(filepath)
         throw error;
     }
 }

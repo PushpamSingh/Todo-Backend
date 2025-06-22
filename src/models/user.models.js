@@ -40,7 +40,7 @@ const userSchema=new mongoose.Schema({
 
 
 //! Password hashing here 
-userSchema.pre('save',async function(){
+userSchema.pre('save',async function(next){
     const user=this;
     if(!this.isModified("password")) return next();
 
@@ -66,8 +66,8 @@ userSchema.methods.comparePassword=async function(userPassword){
     }
 }
 
-userSchema.methods.generateAccessToken=async function(){
-    await jwt.sign(
+userSchema.methods.generateAccessToken= function(){
+    return jwt.sign(
         {
             _id:this._id,
             username:this.username
@@ -78,8 +78,8 @@ userSchema.methods.generateAccessToken=async function(){
         }
     )
 }
-userSchema.methods.generateRefreshToken=async function () {
-    await jwt.sign (
+userSchema.methods.generateRefreshToken= function () {
+    return jwt.sign (
         {
             _id:this._id
         },

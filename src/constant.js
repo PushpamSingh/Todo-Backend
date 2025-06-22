@@ -1,1 +1,1 @@
-export const DB_CONSTANT="ToDo_List"
+export const DB_CONSTANT="ToDoList"
