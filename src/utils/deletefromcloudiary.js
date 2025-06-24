@@ -32,13 +32,13 @@ export const deleteCloudinary=async(filepath)=>{
         if(response?.result!=='ok' && response?.result!=="not found"){
             throw new ApiError(500,"failed to delete file")
         }
-        fs.unlinkSync(filepath)
+        // fs.unlinkSync(filepath)
         
         //    console.log("Response from delete cloudinary: ",response);
            return response;
     } catch (error) {
-        console.log("Cloudinary delete :: Error :: ",error)    
-        fs.unlinkSync(filepath)
+        // console.log("Cloudinary delete :: Error :: ",error)    
+        // fs.unlinkSync(filepath)
         throw error;
     }
 }

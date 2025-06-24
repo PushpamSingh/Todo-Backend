@@ -20,7 +20,7 @@ export const uploadCloudinary=async(filepath)=>{
         fs.unlinkSync(filepath);
         return response;
     } catch (error) {
-        console.log("Cloudinary upload :: Error :: ",error)
+        // console.log("Cloudinary upload :: Error :: ",error)
         fs.unlinkSync(filepath)
         throw error;
     }

@@ -178,6 +178,9 @@ const getAllToDo=asyncHandler(async(req,res)=>{
                         $arrayElemAt:['$TodosList',0]
                     }
                 }
+            },
+            {
+                $sort:{isCompleted:1,createdAt: -1}
             }
         ])
 
