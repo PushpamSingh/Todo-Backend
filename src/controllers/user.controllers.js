@@ -183,7 +183,7 @@ const logout=asyncHandler(async(req,res)=>{
 const getcurrentuser=asyncHandler(async(req,res)=>{
     try {
         return res.status(200).json(
-            new ApiResponse(200,req.user,"current user fetched successfuly")
+            new ApiResponse(200,req?.user,"current user fetched successfuly")
         )
     } catch (error) {
         res.status(500).json(
