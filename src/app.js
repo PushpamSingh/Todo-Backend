@@ -15,7 +15,7 @@ app.use(
         }
     )
 )
-app.use('trust proxy',1) 
+app.set('trust proxy',1) 
 app.use(express.json({limit:"16kb"}))
 app.use(express.urlencoded({limit:"16kb",extended:true}))
 app.use(express.static("public"))
