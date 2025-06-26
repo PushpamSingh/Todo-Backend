@@ -20,7 +20,7 @@ export const VerifyJWT=async(req,res,next)=>{
         req.user=user;
         next()
     } catch (error) {
-        // console.log("VerifyJWT :: Error :: ",error);
+        console.log("VerifyJWT :: Error :: ",error);
         next(error);
         throw new ApiError(505,"Internal server error in jwt")
     }
